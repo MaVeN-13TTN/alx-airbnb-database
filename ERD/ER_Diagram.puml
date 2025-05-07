@@ -1,0 +1,65 @@
+---
+config:
+  theme: dark
+---
+erDiagram
+    User {
+        UUID user_id PK
+        VARCHAR first_name
+        VARCHAR last_name
+        VARCHAR email UK
+        VARCHAR password_hash
+        VARCHAR phone_number
+        ENUM role
+        TIMESTAMP created_at
+    }
+    Property {
+        UUID property_id PK
+        UUID host_id FK
+        VARCHAR name
+        TEXT description
+        VARCHAR location
+        DECIMAL pricepernight
+        TIMESTAMP created_at
+        TIMESTAMP updated_at
+    }
+    Booking {
+        UUID booking_id PK
+        UUID property_id FK
+        UUID user_id FK
+        DATE start_date
+        DATE end_date
+        DECIMAL total_price
+        ENUM status
+        TIMESTAMP created_at
+    }
+    Payment {
+        UUID payment_id PK
+        UUID booking_id FK
+        DECIMAL amount
+        TIMESTAMP payment_date
+        ENUM payment_method
+    }
+    Review {
+        UUID review_id PK
+        UUID property_id FK
+        UUID user_id FK
+        INTEGER rating
+        TEXT comment
+        TIMESTAMP created_at
+    }
+    Message {
+        UUID message_id PK
+        UUID sender_id FK
+        UUID recipient_id FK
+        TEXT message_body
+        TIMESTAMP sent_at
+    }
+    User ||--o{ Property : hosts
+    User ||--o{ Booking : makes
+    Property ||--o{ Booking : has
+    Booking ||--|| Payment : has
+    User ||--o{ Review : writes
+    Property ||--o{ Review : receives
+    User ||--o{ Message : sends
+    User ||--o{ Message : receives
