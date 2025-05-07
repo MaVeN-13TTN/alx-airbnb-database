@@ -19,62 +19,62 @@ The database consists of seven tables:
 ```mermaid
 erDiagram
     User {
-        CHAR(36) user_id PK
-        VARCHAR(50) first_name
-        VARCHAR(50) last_name
-        VARCHAR(100) email UK
-        VARCHAR(255) password_hash
-        VARCHAR(20) phone_number
-        VARCHAR(10) role
+        CHAR36 user_id PK
+        VARCHAR50 first_name
+        VARCHAR50 last_name
+        VARCHAR100 email UK
+        VARCHAR255 password_hash
+        VARCHAR20 phone_number
+        VARCHAR10 role
         TIMESTAMP created_at
     }
     Location {
-        CHAR(36) location_id PK
-        VARCHAR(100) city
-        VARCHAR(100) state
-        VARCHAR(100) country
+        CHAR36 location_id PK
+        VARCHAR100 city
+        VARCHAR100 state
+        VARCHAR100 country
     }
     Property {
-        CHAR(36) property_id PK
-        CHAR(36) host_id FK
-        CHAR(36) location_id FK
-        VARCHAR(100) name
+        CHAR36 property_id PK
+        CHAR36 host_id FK
+        CHAR36 location_id FK
+        VARCHAR100 name
         TEXT description
-        VARCHAR(255) street_address
-        VARCHAR(20) zip_code
-        DECIMAL(10,2) pricepernight
+        VARCHAR255 street_address
+        VARCHAR20 zip_code
+        DECIMAL pricepernight
         TIMESTAMP created_at
         TIMESTAMP updated_at
     }
     Booking {
-        CHAR(36) booking_id PK
-        CHAR(36) property_id FK
-        CHAR(36) user_id FK
+        CHAR36 booking_id PK
+        CHAR36 property_id FK
+        CHAR36 user_id FK
         DATE start_date
         DATE end_date
-        DECIMAL(10,2) total_price
-        VARCHAR(10) status
+        DECIMAL total_price
+        VARCHAR10 status
         TIMESTAMP created_at
     }
     Payment {
-        CHAR(36) payment_id PK
-        CHAR(36) booking_id FK
-        DECIMAL(10,2) amount
+        CHAR36 payment_id PK
+        CHAR36 booking_id FK
+        DECIMAL amount
         TIMESTAMP payment_date
-        VARCHAR(20) payment_method
+        VARCHAR20 payment_method
     }
     Review {
-        CHAR(36) review_id PK
-        CHAR(36) property_id FK
-        CHAR(36) user_id FK
+        CHAR36 review_id PK
+        CHAR36 property_id FK
+        CHAR36 user_id FK
         INTEGER rating
         TEXT comment
         TIMESTAMP created_at
     }
     Message {
-        CHAR(36) message_id PK
-        CHAR(36) sender_id FK
-        CHAR(36) recipient_id FK
+        CHAR36 message_id PK
+        CHAR36 sender_id FK
+        CHAR36 recipient_id FK
         TEXT message_body
         TIMESTAMP sent_at
     }
@@ -92,14 +92,17 @@ erDiagram
 ## Data Types and Constraints
 
 ### Primary Keys
+
 - All tables use CHAR(36) for primary keys to store UUIDs
 
 ### Foreign Keys
+
 - Appropriate foreign key constraints with ON DELETE actions:
   - CASCADE: When a parent record is deleted, related child records are also deleted
   - RESTRICT: Prevents deletion of a parent record if child records exist
 
 ### Check Constraints
+
 - Role values in User table are restricted to 'guest', 'host', 'admin'
 - Status values in Booking table are restricted to 'pending', 'confirmed', 'canceled'
 - Payment method values in Payment table are restricted to 'credit_card', 'paypal', 'stripe'
@@ -109,6 +112,7 @@ erDiagram
 - A user cannot send a message to themselves
 
 ### Unique Constraints
+
 - Email in User table must be unique
 - City, state, country combination in Location table must be unique
 - A user can only review a property once
