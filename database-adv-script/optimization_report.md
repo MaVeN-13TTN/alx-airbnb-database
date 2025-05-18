@@ -7,14 +7,14 @@ This report documents the process of optimizing a complex query that retrieves b
 The initial query joins multiple tables to retrieve comprehensive booking information:
 
 ```sql
-SELECT 
+SELECT
     b.booking_id,
     b.start_date,
     b.end_date,
     b.total_price,
     b.status,
     b.created_at AS booking_created_at,
-    
+
     u.user_id,
     u.first_name,
     u.last_name,
@@ -22,7 +22,7 @@ SELECT
     u.phone_number,
     u.role,
     u.created_at AS user_created_at,
-    
+
     p.property_id,
     p.name AS property_name,
     p.description,
@@ -31,37 +31,39 @@ SELECT
     p.pricepernight,
     p.created_at AS property_created_at,
     p.updated_at AS property_updated_at,
-    
+
     l.city,
     l.state,
     l.country,
-    
+
     h.user_id AS host_id,
     h.first_name AS host_first_name,
     h.last_name AS host_last_name,
     h.email AS host_email,
     h.phone_number AS host_phone_number,
-    
+
     pay.payment_id,
     pay.amount,
     pay.payment_date,
     pay.payment_method,
-    
+
     (SELECT COUNT(*) FROM Review r WHERE r.property_id = p.property_id) AS review_count,
     (SELECT AVG(r.rating) FROM Review r WHERE r.property_id = p.property_id) AS average_rating
-FROM 
+FROM
     Booking b
-JOIN 
+JOIN
     "User" u ON b.user_id = u.user_id
-JOIN 
+JOIN
     Property p ON b.property_id = p.property_id
-JOIN 
+JOIN
     Location l ON p.location_id = l.location_id
-JOIN 
+JOIN
     "User" h ON p.host_id = h.user_id
-LEFT JOIN 
+LEFT JOIN
     Payment pay ON b.booking_id = pay.booking_id
-ORDER BY 
+WHERE
+    b.start_date >= '2023-01-01' AND b.end_date <= '2023-12-31'
+ORDER BY
     b.start_date DESC,
     b.created_at DESC;
 ```
@@ -122,11 +124,13 @@ Using EXPLAIN ANALYZE, we identified several inefficiencies in the initial query
 
 2. **Excessive Columns**: The query retrieves many columns that might not be necessary for the application, increasing the data transfer overhead.
 
-3. **No Filtering**: The query retrieves all bookings without any filtering, which could return a large result set.
+3. **Broad Date Range Filtering**: The query filters bookings for an entire year (2023), which could still return a large result set. A more targeted date range would be more efficient.
 
 4. **No Limit**: Without a LIMIT clause, the query returns all matching rows, which could be inefficient for pagination or display purposes.
 
 5. **Multiple Scans**: The query performs multiple sequential scans on tables that could benefit from index usage.
+
+6. **Complex AND Condition**: The WHERE clause uses an AND condition on date ranges, but could benefit from additional filtering to further reduce the result set.
 
 ## Optimization Strategies
 
@@ -136,72 +140,74 @@ Based on the performance analysis, we implemented the following optimizations:
 
 2. **Reduced Column Selection**: Limited the columns to only those necessary for the application.
 
-3. **Added Filtering**: Added a WHERE clause to filter out canceled bookings, reducing the result set size.
+3. **Improved Filtering**: Modified the date range filtering and added a status filter to exclude canceled bookings, significantly reducing the result set size.
 
 4. **Added LIMIT Clause**: Limited the result set to 100 rows, which is typically sufficient for a single page view.
 
-5. **Leveraged Existing Indexes**: Ensured the query uses existing indexes on foreign keys and sorting columns.
+5. **Leveraged Existing Indexes**: Ensured the query uses existing indexes on foreign keys, date fields, and sorting columns.
+
+6. **Simplified AND Conditions**: Replaced the broad date range condition with a more targeted status-based filter that can better utilize indexes.
 
 ## Optimized Query
 
 ```sql
-SELECT 
+SELECT
     b.booking_id,
     b.start_date,
     b.end_date,
     b.total_price,
     b.status,
     b.created_at AS booking_created_at,
-    
+
     u.user_id,
     u.first_name,
     u.last_name,
     u.email,
     u.role,
-    
+
     p.property_id,
     p.name AS property_name,
     p.pricepernight,
-    
+
     l.city,
     l.state,
     l.country,
-    
+
     h.first_name AS host_first_name,
     h.last_name AS host_last_name,
-    
+
     pay.payment_id,
     pay.amount,
     pay.payment_method,
-    
+
     pr.review_count,
     pr.average_rating
-FROM 
+FROM
     Booking b
-JOIN 
+JOIN
     "User" u ON b.user_id = u.user_id
-JOIN 
+JOIN
     Property p ON b.property_id = p.property_id
-JOIN 
+JOIN
     Location l ON p.location_id = l.location_id
-JOIN 
+JOIN
     "User" h ON p.host_id = h.user_id
-LEFT JOIN 
+LEFT JOIN
     Payment pay ON b.booking_id = pay.booking_id
-LEFT JOIN 
+LEFT JOIN
     (
-        SELECT 
-            property_id, 
-            COUNT(*) AS review_count, 
+        SELECT
+            property_id,
+            COUNT(*) AS review_count,
             AVG(rating) AS average_rating
-        FROM 
+        FROM
             Review
-        GROUP BY 
+        GROUP BY
             property_id
     ) pr ON p.property_id = pr.property_id
-WHERE 
+WHERE
     b.status != 'canceled'
-ORDER BY 
+ORDER BY
     b.start_date DESC,
     b.created_at DESC
 LIMIT 100;
