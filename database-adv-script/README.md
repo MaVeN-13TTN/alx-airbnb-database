@@ -1,6 +1,6 @@
-# Advanced SQL Joins Queries
+# Advanced SQL Queries
 
-This directory contains SQL queries demonstrating different types of joins in SQL.
+This directory contains SQL queries demonstrating advanced SQL concepts including different types of joins and subqueries.
 
 ## Types of Joins Implemented
 
@@ -19,9 +19,22 @@ This directory contains SQL queries demonstrating different types of joins in SQ
 - Used to get all users and all bookings, even if a user has no booking or a booking is not linked to a user
 - If there's no match in one table, NULL values are returned for that table's columns
 
+## Types of Subqueries Implemented
+
+### 1. Non-correlated Subquery
+- A subquery that can be executed independently of the outer query
+- Used to find all properties where the average rating is greater than 4.0
+- The subquery calculates the average rating for each property, and the outer query filters based on this result
+
+### 2. Correlated Subquery
+- A subquery that depends on the outer query for its values
+- Used to find users who have made more than 3 bookings
+- The subquery references the outer query's table to count bookings for each user
+
 ## File Structure
 
-- `joins_queries.sql`: Contains the SQL queries implementing the different types of joins
+- `joins_queries.sql`: Contains SQL queries implementing different types of joins
+- `subqueries.sql`: Contains SQL queries implementing different types of subqueries
 
 ## Database Schema Overview
 
@@ -33,10 +46,11 @@ The queries work with the following tables:
 
 ## Usage
 
-To run these queries, use the following command:
+To run these queries, use the following commands:
 
 ```bash
 sqlite3 airbnb.db < joins_queries.sql
+sqlite3 airbnb.db < subqueries.sql
 ```
 
 Note: Make sure the database schema has been created and populated with data before running these queries.
