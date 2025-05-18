@@ -1,37 +1,36 @@
--- Advanced SQL Indexes for Optimization (PostgreSQL Version)
--- This script creates additional indexes to improve query performance and measures their impact using EXPLAIN ANALYZE
--- Note: This script is designed for PostgreSQL which supports EXPLAIN ANALYZE
+-- Advanced SQL Indexes for Optimization
+-- This script creates additional indexes to improve query performance and measures their impact
 
--- Enable timing to measure query performance
-\timing on
+-- Enable foreign key constraints
+PRAGMA foreign_keys = ON;
 
 -- Part 1: Measure query performance BEFORE adding indexes
 -- ======================================================
 
 -- Query 1: Find all bookings for a specific user
-EXPLAIN ANALYZE
-SELECT b.*, p.name 
+EXPLAIN QUERY PLAN
+SELECT b.*, p.name
 FROM Booking b
 JOIN Property p ON b.property_id = p.property_id
 WHERE b.user_id = 'u2b3c4d5-e6f7-g8h9-i0j1-k2l3m4n5o6p7';
 
 -- Query 2: Find properties with an average rating greater than 4.0
-EXPLAIN ANALYZE
-SELECT 
+EXPLAIN QUERY PLAN
+SELECT
     p.property_id,
     p.name AS property_name,
     p.description,
     p.pricepernight,
     (SELECT AVG(r.rating) FROM Review r WHERE r.property_id = p.property_id) AS average_rating
-FROM 
+FROM
     Property p
-WHERE 
+WHERE
     (SELECT AVG(r.rating) FROM Review r WHERE r.property_id = p.property_id) > 4.0
-ORDER BY 
+ORDER BY
     average_rating DESC;
 
 -- Query 3: Find available properties for specific dates
-EXPLAIN ANALYZE
+EXPLAIN QUERY PLAN
 SELECT p.*
 FROM Property p
 WHERE p.property_id NOT IN (
@@ -42,41 +41,41 @@ WHERE p.property_id NOT IN (
 );
 
 -- Query 4: Find users who have made more than 3 bookings
-EXPLAIN ANALYZE
-SELECT 
+EXPLAIN QUERY PLAN
+SELECT
     u.user_id,
     u.first_name,
     u.last_name,
     u.email,
     u.role,
     COUNT(b.booking_id) AS booking_count
-FROM 
+FROM
     User u
-JOIN 
+JOIN
     Booking b ON u.user_id = b.user_id
-GROUP BY 
+GROUP BY
     u.user_id, u.first_name, u.last_name, u.email, u.role
-HAVING 
+HAVING
     COUNT(b.booking_id) > 3
-ORDER BY 
+ORDER BY
     booking_count DESC;
 
 -- Query 5: Rank properties based on the total number of bookings
-EXPLAIN ANALYZE
-SELECT 
+EXPLAIN QUERY PLAN
+SELECT
     p.property_id,
     p.name AS property_name,
     p.description,
     p.pricepernight,
     COUNT(b.booking_id) AS total_bookings,
     RANK() OVER (ORDER BY COUNT(b.booking_id) DESC) AS booking_rank
-FROM 
+FROM
     Property p
-LEFT JOIN 
+LEFT JOIN
     Booking b ON p.property_id = b.property_id
-GROUP BY 
+GROUP BY
     p.property_id, p.name, p.description, p.pricepernight
-ORDER BY 
+ORDER BY
     total_bookings DESC, p.name;
 
 -- Part 2: Create additional indexes
@@ -84,10 +83,10 @@ ORDER BY
 
 -- User table additional indexes
 -- Index on first_name and last_name for user search and sorting
-CREATE INDEX IF NOT EXISTS idx_user_name ON "User"(first_name, last_name);
+CREATE INDEX IF NOT EXISTS idx_user_name ON User(first_name, last_name);
 
 -- Index on created_at for user registration date filtering and sorting
-CREATE INDEX IF NOT EXISTS idx_user_created_at ON "User"(created_at);
+CREATE INDEX IF NOT EXISTS idx_user_created_at ON User(created_at);
 
 -- Property table additional indexes
 -- Composite index on name for property search and sorting
@@ -143,29 +142,29 @@ CREATE INDEX IF NOT EXISTS idx_message_sent_at_detailed ON Message(sent_at DESC)
 -- ====================================================
 
 -- Query 1: Find all bookings for a specific user (after indexing)
-EXPLAIN ANALYZE
-SELECT b.*, p.name 
+EXPLAIN QUERY PLAN
+SELECT b.*, p.name
 FROM Booking b
 JOIN Property p ON b.property_id = p.property_id
 WHERE b.user_id = 'u2b3c4d5-e6f7-g8h9-i0j1-k2l3m4n5o6p7';
 
 -- Query 2: Find properties with an average rating greater than 4.0 (after indexing)
-EXPLAIN ANALYZE
-SELECT 
+EXPLAIN QUERY PLAN
+SELECT
     p.property_id,
     p.name AS property_name,
     p.description,
     p.pricepernight,
     (SELECT AVG(r.rating) FROM Review r WHERE r.property_id = p.property_id) AS average_rating
-FROM 
+FROM
     Property p
-WHERE 
+WHERE
     (SELECT AVG(r.rating) FROM Review r WHERE r.property_id = p.property_id) > 4.0
-ORDER BY 
+ORDER BY
     average_rating DESC;
 
 -- Query 3: Find available properties for specific dates (after indexing)
-EXPLAIN ANALYZE
+EXPLAIN QUERY PLAN
 SELECT p.*
 FROM Property p
 WHERE p.property_id NOT IN (
@@ -176,39 +175,39 @@ WHERE p.property_id NOT IN (
 );
 
 -- Query 4: Find users who have made more than 3 bookings (after indexing)
-EXPLAIN ANALYZE
-SELECT 
+EXPLAIN QUERY PLAN
+SELECT
     u.user_id,
     u.first_name,
     u.last_name,
     u.email,
     u.role,
     COUNT(b.booking_id) AS booking_count
-FROM 
-    "User" u
-JOIN 
+FROM
+    User u
+JOIN
     Booking b ON u.user_id = b.user_id
-GROUP BY 
+GROUP BY
     u.user_id, u.first_name, u.last_name, u.email, u.role
-HAVING 
+HAVING
     COUNT(b.booking_id) > 3
-ORDER BY 
+ORDER BY
     booking_count DESC;
 
 -- Query 5: Rank properties based on the total number of bookings (after indexing)
-EXPLAIN ANALYZE
-SELECT 
+EXPLAIN QUERY PLAN
+SELECT
     p.property_id,
     p.name AS property_name,
     p.description,
     p.pricepernight,
     COUNT(b.booking_id) AS total_bookings,
     RANK() OVER (ORDER BY COUNT(b.booking_id) DESC) AS booking_rank
-FROM 
+FROM
     Property p
-LEFT JOIN 
+LEFT JOIN
     Booking b ON p.property_id = b.property_id
-GROUP BY 
+GROUP BY
     p.property_id, p.name, p.description, p.pricepernight
-ORDER BY 
+ORDER BY
     total_bookings DESC, p.name;
