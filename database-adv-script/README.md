@@ -1,6 +1,6 @@
 # Advanced SQL Queries
 
-This directory contains SQL queries demonstrating advanced SQL concepts including different types of joins and subqueries.
+This directory contains SQL queries demonstrating advanced SQL concepts including different types of joins, subqueries, aggregations, and window functions.
 
 ## Types of Joins Implemented
 
@@ -31,10 +31,26 @@ This directory contains SQL queries demonstrating advanced SQL concepts includin
 - Used to find users who have made more than 3 bookings
 - The subquery references the outer query's table to count bookings for each user
 
+## Aggregations and Window Functions
+
+### 1. Aggregation Functions
+- Functions that perform calculations on a set of values and return a single value
+- Used to find the total number of bookings made by each user using COUNT and GROUP BY
+- Provides summary statistics about the data
+
+### 2. Window Functions
+- Functions that perform calculations across a set of rows related to the current row
+- Used to rank properties based on the total number of bookings they have received
+- Examples include:
+  - ROW_NUMBER(): Assigns a unique sequential number to each row
+  - RANK(): Assigns the same rank to rows with the same values, leaving gaps in the sequence
+  - DENSE_RANK(): Assigns the same rank to rows with the same values, without leaving gaps
+
 ## File Structure
 
 - `joins_queries.sql`: Contains SQL queries implementing different types of joins
 - `subqueries.sql`: Contains SQL queries implementing different types of subqueries
+- `aggregations_and_window_functions.sql`: Contains SQL queries implementing aggregations and window functions
 
 ## Database Schema Overview
 
@@ -43,6 +59,7 @@ The queries work with the following tables:
 - `Property`: Contains property listings
 - `Booking`: Contains booking information
 - `Review`: Contains property reviews
+- `Location`: Contains location information
 
 ## Usage
 
@@ -51,6 +68,7 @@ To run these queries, use the following commands:
 ```bash
 sqlite3 airbnb.db < joins_queries.sql
 sqlite3 airbnb.db < subqueries.sql
+sqlite3 airbnb.db < aggregations_and_window_functions.sql
 ```
 
 Note: Make sure the database schema has been created and populated with data before running these queries.
